@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  flask:
+    build: .
+    container_name: flask_app
+    restart: always
+    environment:
+      - FLASK_ENV=production
+    volumes:
+      - ./uploads:/app/uploads
+      - static_volume:/app/static
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/app/static
+    depends_on:
+      - flask
+
+volumes:
+    static_volume:

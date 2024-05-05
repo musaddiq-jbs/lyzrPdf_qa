@@ -1,0 +1,4 @@
+flask~=3.0.3
+lyzr~=0.1.30
+pdfminer.six==20231228
+python-dotenv==1.0.1

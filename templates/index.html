@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF QA App</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 14px;
+            color: #888;
+        }
+        .loader {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .loader img {
+            width: 50px;
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div id="upload-section">
+            <h1>Upload a PDF file</h1>
+            <form id="upload-form">
+                <div class="form-group">
+                    <input type="file" name="file" accept=".pdf" class="form-control-file">
+                </div>
+                <button type="submit" class="btn btn-primary">Upload</button>
+            </form>
+        </div>
+        <div id="qa-section" style="display: none;">
+            <h1>Ask a question</h1>
+            <form id="question-form">
+                <div class="form-group">
+                    <input type="text" name="question" placeholder="Enter your question" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary">Ask</button>
+            </form>
+            <div class="loader">
+                <img src="{{ url_for('static', filename='loader.gif') }}" alt="Loading...">
+            </div>
+            <div id="response-section" style="display: none;">
+                <h2>Response:</h2>
+                <p id="response"></p>
+                <h2>Sources:</h2>
+                <div id="sources"></div>
+            </div>
+            <button id="clear-btn" class="btn btn-danger mt-3">Clear and Start Fresh</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>Developed by Mohammed Musaddiq</p>
+    </footer>
+
+    <script>
+        $(document).ready(function() {
+            $('#upload-form').submit(function(e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            $('#upload-section').hide();
+                            $('#qa-section').show();
+                        } else {
+                            alert(response.error);
+                        }
+                    }
+                });
+            });
+
+            $('#question-form').submit(function(e) {
+                e.preventDefault();
+                var formData = $(this).serialize();
+                $('.loader').show();
+                $.ajax({
+                    url: '/ask',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        $('.loader').hide();
+                        $('#response').text(response.response);
+                        var sourcesHtml = '';
+                        for (var i = 0; i < response.sources.length; i++) {
+                            sourcesHtml += '<p>' + response.sources[i] + '</p>';
+                        }
+                        $('#sources').html(sourcesHtml);
+                        $('#response-section').show();
+                    }
+                });
+            });
+
+            $('#clear-btn').click(function() {
+                $.ajax({
+                    url: '/clear',
+                    type: 'POST',
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
